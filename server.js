@@ -18,9 +18,6 @@ const db = mysql.createConnection(
     console.log(`Connected to the books_db database.`)
 );
 
-
-
-
 app.listen(PORT, () =>
     console.log(`Express server listening on port ${PORT}!`)
 );
