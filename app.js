@@ -98,8 +98,9 @@ function addADepartment() {
             }
         ])
         .then((res) => {
+            const newDatabase = [`${res.addDepartment}`]
             db.promise().query(
-                'INSERT INTO department (name) VALUE (?)', `${res.addDepartment}`
+                'INSERT INTO department (name) VALUE (?)', newDatabase
             ).then((res) => {
                 console.log(`${res.addDepartment} has been added to the department database!`)
             }).then(() => chooseQuery())
