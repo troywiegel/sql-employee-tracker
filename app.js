@@ -31,8 +31,8 @@ function chooseQuery() {
                 ]
             }
         ])
-        .then((answer) => {
-            switch (answer.queryOptions) {
+        .then((res) => {
+            switch (res.queryOptions) {
                 case 'View All Departments':
                     viewAllDepartments();
                     break;
@@ -43,19 +43,19 @@ function chooseQuery() {
                     viewAllEmployees();
                     break;
                 case 'Add A Department':
-                    addADepartment()
+                    addADepartment();
                     break;
                 case 'Add A Role':
-                    addARole()
+                    addARole();
                     break;
                 case 'Add An Employee':
-                    addAnEmployee()
+                    addAnEmployee();
                     break;
                 case 'Update An Employee Role':
-                    updateAnEmployeeRole()
+                    updateAnEmployeeRole();
                     break;
                 case 'Exit':
-                    exit()
+                    exit();
                     break;
             }
         })
