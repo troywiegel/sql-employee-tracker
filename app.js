@@ -1,5 +1,5 @@
-const mysql = require('mysql2')
 const inquirer = require('inquirer')
+const mysql = require('mysql2')
 require('dotenv').config()
 
 const db = mysql.createConnection(
@@ -58,45 +58,34 @@ function chooseQuery() {
                     exit()
                     break;
             }
-            // chooseQuery()
         })
 }
 
 function viewAllDepartments() {
-
-    db.query('SELECT * FROM department', (err, result) => {
-        if (err) {
-            console.log(err)
-        }
+    db.promise().query(
+        'SELECT * FROM department;'
+    ).then(([res]) => {
         console.log('\n')
-        console.table(result)
-    })
+        console.table(res)
+    }).then(() => chooseQuery())
 }
 
 function viewAllRoles() {
-
-    console.log('viewing all roles!!')
-
-    db.query('SELECT * FROM role', (err, result) => {
-        if (err) {
-            console.log(err)
-        }
+    db.promise().query(
+        'SELECT * FROM role;'
+    ).then(([res]) => {
         console.log('\n')
-        console.table(result)
-    })
+        console.table(res)
+    }).then(() => chooseQuery())
 }
 
 function viewAllEmployees() {
-
-    console.log('viewing all employees!!')
-
-    db.query('SELECT * FROM employee', (err, result) => {
-        if (err) {
-            console.log(err)
-        }
+    db.promise().query(
+        'SELECT * FROM employee;'
+    ).then(([res]) => {
         console.log('\n')
-        console.table(result)
-    })
+        console.table(res)
+    }).then(() => chooseQuery())
 }
 
 function addADepartment() {
@@ -108,14 +97,12 @@ function addADepartment() {
                 name: 'addDepartment',
             }
         ])
-        .then((answer) => {
-            db.query(`INSERT INTO department (name) VALUES (?)`, `${answer.addDepartment}`, (err, result) => {
-                if (err) {
-                    console.log(err)
-                }
-                console.log('\n')
-                console.table(result)
-            })
+        .then((res) => {
+            db.promise().query(
+                'INSERT INTO department (name) VALUE (?)', `${res.addDepartment}`
+            ).then((res) => {
+                console.log(`${res.addDepartment} has been added to the department database!`)
+            }).then(() => chooseQuery())
         })
 }
 
@@ -138,14 +125,13 @@ function addARole() {
                 name: 'addRoleDepartment',
             }
         ])
-        .then((answer) => {
-            db.query(`INSERT INTO role (title, salary. department_id) VALUES (?, ?, ?)`, `[${answer.addRoleTitle}, ${answer.addRoleSalary}, ${answer.addRoleDepartment}]`, (err, result) => {
-                if (err) {
-                    console.log(err)
-                }
-                console.log('\n')
-                console.table(result)
-            })
+        .then((res) => {
+            const newRole = [`${res.addRoleTitle}`, `${res.addRoleSalary}`, `${res.addRoleDepartment}`]
+            db.promise().query(
+                'INSERT INTO role (title, salary, department_id) VALUES (?,?,?)', newRole
+            ).then((res) => {
+                console.log(`${res.addRoleTitle} has been added to the role database!`)
+            }).then(() => chooseQuery())
         })
 }
 
@@ -164,7 +150,7 @@ function addAnEmployee() {
             },
             {
                 type: 'input',
-                message: 'What is the employee role id?',
+                message: 'What is the employee role?',
                 name: 'addEmployeeRole',
             },
             {
@@ -173,25 +159,26 @@ function addAnEmployee() {
                 name: 'addEmployeeManager',
             }
         ])
-        .then((answer) => {
-            db.query(`INSERT INTO employee (first_name, last_name. role_id, manager_id) VALUES (?, ?, ?, ?)`, `${answer.addEmployeeFirstName}, ${answer.addEmployeeLastName}, ${answer.addEmployeeRole}, ${answer.addEmployeeManager}`, (err, result) => {
-                if (err) {
-                    console.log(err)
-                }
-                console.log('\n')
-                console.table(result)
-            })
+        .then((res) => {
+            const newEmployee = [`${res.addEmployeeFirstName}`, `${res.addEmployeeLastName}`, `${res.addEmployeeRole}`, `${res.addEmployeeManager}`]
+            db.promise().query(
+                'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)', newEmployee
+            ).then((res) => {
+                console.log(`${res.addEmployeeFirstName} has been added to the employee database!`)
+            }).then(() => chooseQuery())
         })
 }
 
 function updateAnEmployeeRole() {
-    console.log('updating an employee role!!')
     console.log('\n')
+    console.log('updating an employee role!!')
 }
 
 function exit() {
+    console.log('\n')
     console.log('see ya!!')
-    return
+    console.log('\n')
+    process.exit()
 }
 
 function init() {
