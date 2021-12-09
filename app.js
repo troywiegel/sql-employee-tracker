@@ -89,27 +89,37 @@ function viewAllEmployees() {
 }
 
 function addADepartment() {
-    inquirer
-        .prompt([
-            {
-                type: 'input',
-                message: 'What is the name of the department you would like to add?',
-                name: 'addDepartment',
-            }
-        ])
-        .then((res) => {
-            const newDatabase = [`${res.addDepartment}`]
-            db.promise().query(
-                'INSERT INTO department (name) VALUE (?)', newDatabase
-            ).then((res) => {
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: 'What is the name of the department you would like to add?',
+            name: 'addDepartment',
+        }
+    ]).then((res) => {
+        db.query(
+            'INSERT INTO department (name) VALUE (?)',
+            [res.addDepartment],
+            (err, res) => {
                 console.log(`${res.addDepartment} has been added to the department database!`)
-            }).then(() => chooseQuery())
-        })
+                chooseQuery()
+            })
+    })
 }
 
 function addARole() {
-    inquirer
-        .prompt([
+
+    db.query('SELECT * FROM department', (err, res) => {
+
+        const addRoleArray = []
+        for (let i = 0; i < res.length; i++) {
+            const newRoleId = {
+                name: res[i].name,
+                value: res[i].id
+            }
+            addRoleArray.push(newRoleId)
+        }
+
+        inquirer.prompt([
             {
                 type: 'input',
                 message: 'What is the title of the role you would like to add?',
@@ -121,24 +131,38 @@ function addARole() {
                 name: 'addRoleSalary',
             },
             {
-                type: 'input',
+                type: 'list',
                 message: 'What is the department of the role you would like to add?',
                 name: 'addRoleDepartment',
+                choices: addRoleArray
             }
-        ])
-        .then((res) => {
-            const newRole = [`${res.addRoleTitle}`, `${res.addRoleSalary}`, `${res.addRoleDepartment}`]
-            db.promise().query(
-                'INSERT INTO role (title, salary, department_id) VALUES (?,?,?)', newRole
-            ).then((res) => {
-                console.log(`${res.addRoleTitle} has been added to the role database!`)
-            }).then(() => chooseQuery())
+        ]).then((res) => {
+
+            db.query(
+                'INSERT INTO role (title, salary, department_id) VALUES (?,?,?)',
+                [res.addRoleTitle, res.addRoleSalary, res.addRoleDepartment],
+                (err, res) => {
+                    console.log(`${res.addRoleTitle} has been added to the role database!`)
+                    chooseQuery()
+                })
         })
+    })
 }
 
 function addAnEmployee() {
-    inquirer
-        .prompt([
+
+    db.query('SELECT * FROM employee', (err, res) => {
+
+        const addManagerArray = []
+        for (let i = 0; i < res.length; i++) {
+            const newEmployeeManager = {
+                name: res[i].first_name,
+                value: res[i].id
+            }
+            addManagerArray.push(newEmployeeManager)
+        }
+
+        inquirer.prompt([
             {
                 type: 'input',
                 message: 'What is the employee first name?',
@@ -155,24 +179,73 @@ function addAnEmployee() {
                 name: 'addEmployeeRole',
             },
             {
-                type: 'input',
+                type: 'list',
                 message: 'Who is the manager for this employee?',
                 name: 'addEmployeeManager',
+                choices: addManagerArray
             }
-        ])
-        .then((res) => {
-            const newEmployee = [`${res.addEmployeeFirstName}`, `${res.addEmployeeLastName}`, `${res.addEmployeeRole}`, `${res.addEmployeeManager}`]
-            db.promise().query(
-                'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)', newEmployee
-            ).then((res) => {
-                console.log(`${res.addEmployeeFirstName} has been added to the employee database!`)
-            }).then(() => chooseQuery())
+        ]).then((res) => {
+
+            db.query(
+                'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)',
+                [res.addEmployeeFirstName, res.addEmployeeLastName, res.addEmployeeRole, res.addEmployeeManager],
+                (err, res) => {
+                    console.log(`Employee has been added to the employee database!`)
+                    chooseQuery()
+                })
         })
+    })
 }
 
 function updateAnEmployeeRole() {
-    console.log('\n')
-    console.log('updating an employee role!!')
+
+    db.query('SELECT * FROM employee', (err, res) => {
+
+        const employeeArray = []
+        for (let i = 0; i < res.length; i++) {
+            const employeeName = {
+                name: res[i].name,
+                value: res[i].id
+            }
+            employeeArray.push(employeeName)
+
+            db.query('SELECT * FROM role', (err, res) => {
+
+                const roleArray = []
+                for (let i = 0; i < res.length; i++) {
+                    const roleName = {
+                        name: res[i].name,
+                        value: res[i].id
+                    }
+                    roleArray.push(roleName)
+                }
+
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        message: 'What is the name of the employee?',
+                        name: 'addRoleDepartment',
+                        choices: employeeArray[i].name
+                    },
+                    {
+                        type: 'list',
+                        message: 'What is their new role?',
+                        name: 'addRoleDepartment',
+                        choices: roleArray[i].name
+                    }
+                ]).then((res) => {
+
+                    db.query(
+                        'UPDATE employee SET rold_id = ? WHERE id = ?',
+                        [res.roleArray, res.employeeArray],
+                        (err, res) => {
+                            console.log(`${res.employeeArray} has been updated in the role database!`)
+                            chooseQuery()
+                        })
+                })
+            })
+        }
+    })
 }
 
 function exit() {
@@ -182,8 +255,4 @@ function exit() {
     process.exit()
 }
 
-function init() {
-    chooseQuery()
-}
-
-init()
+chooseQuery()
