@@ -152,7 +152,6 @@ function addARole() {
 function addAnEmployee() {
 
     db.query('SELECT * FROM role', (err, res) => {
-
         const addEmployeeArray = []
         for (let i = 0; i < res.length; i++) {
             const newEmployeeRole = {
@@ -162,49 +161,47 @@ function addAnEmployee() {
             addEmployeeArray.push(newEmployeeRole)
         }
 
-        inquirer.prompt([
-            {
-                type: 'input',
-                message: 'What is the employee first name?',
-                name: 'addEmployeeFirstName',
-            },
-            {
-                type: 'input',
-                message: 'What is the employee last name?',
-                name: 'addEmployeeLastName',
-            },
-            {
-                type: 'list',
-                message: 'What is the employee role?',
-                name: 'addEmployeeRole',
-                choices: addEmployeeArray
-            }
-        ]).then((res) => {
-            db.query('SELECT * FROM employee', (err, res) => {
-                const addManagerArray = []
-                for (let i = 0; i < res.length; i++) {
-                    const newEmployeeManager = {
-                        name: res[i].first_name,
-                        value: res[i].id
-                    }
-                    addManagerArray.push(newEmployeeManager)
+        db.query('SELECT * FROM employee', (err, res) => {
+            const addManagerArray = []
+            for (let i = 0; i < res.length; i++) {
+                const newEmployeeManager = {
+                    name: res[i].first_name,
+                    value: res[i].id
                 }
-                inquirer.prompt([
-                    {
-                        type: 'list',
-                        message: 'Who is the manager for this employee?',
-                        name: 'addEmployeeManager',
-                        choices: addManagerArray
-                    }
-                ]).then((res) => {
-                    db.query(
-                        'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)',
-                        [res.addEmployeeFirstName, res.addEmployeeLastName, res.addEmployeeRole, res.addEmployeeManager],
-                        (err, res) => {
-                            console.log(`Employee has been added to the employee database!`)
-                            chooseQuery()
-                        })
-                })
+                addManagerArray.push(newEmployeeManager)
+            }
+
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    message: 'What is the employee first name?',
+                    name: 'addEmployeeFirstName',
+                },
+                {
+                    type: 'input',
+                    message: 'What is the employee last name?',
+                    name: 'addEmployeeLastName',
+                },
+                {
+                    type: 'list',
+                    message: 'What is the employee role?',
+                    name: 'addEmployeeRole',
+                    choices: addEmployeeArray
+                },
+                {
+                    type: 'list',
+                    message: 'Who is the manager for this employee?',
+                    name: 'addEmployeeManager',
+                    choices: addManagerArray
+                }
+            ]).then((res) => {
+                db.query(
+                    'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)',
+                    [res.addEmployeeFirstName, res.addEmployeeLastName, res.addEmployeeRole, res.addEmployeeManager],
+                    (err, res) => {
+                        console.log(`Employee has been added to the employee database!`)
+                        chooseQuery()
+                    })
             })
         })
     })
