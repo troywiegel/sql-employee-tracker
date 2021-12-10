@@ -5,6 +5,11 @@
                         
 ## Description
 This is a node.js app that takes user input(s) with inquirer and manages their sql employee database.
+
+
+https://user-images.githubusercontent.com/37552547/145502538-b7fb38c5-74a9-4bae-86e6-e9631027ca03.mp4
+
+
 <br><br>
                         
 ## Table of Contents
