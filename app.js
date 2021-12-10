@@ -1,5 +1,6 @@
 const inquirer = require('inquirer')
 const mysql = require('mysql2')
+const consoleTable = require('console.table')
 require('dotenv').config()
 
 const db = mysql.createConnection(
@@ -13,103 +14,105 @@ const db = mysql.createConnection(
 )
 
 function chooseQuery() {
-    inquirer
-        .prompt([
-            {
-                type: 'list',
-                message: 'What would you like to do?',
-                name: 'queryOptions',
-                choices: [
-                    'View All Departments',
-                    'View All Roles',
-                    'View All Employees',
-                    'Add A Department',
-                    'Add A Role',
-                    'Add An Employee',
-                    'Update An Employee Role',
-                    'Exit'
-                ]
-            }
-        ])
-        .then((res) => {
-            switch (res.queryOptions) {
-                case 'View All Departments':
-                    viewAllDepartments();
-                    break;
-                case 'View All Roles':
-                    viewAllRoles();
-                    break;
-                case 'View All Employees':
-                    viewAllEmployees();
-                    break;
-                case 'Add A Department':
-                    addADepartment();
-                    break;
-                case 'Add A Role':
-                    addARole();
-                    break;
-                case 'Add An Employee':
-                    addAnEmployee();
-                    break;
-                case 'Update An Employee Role':
-                    updateAnEmployeeRole();
-                    break;
-                case 'Exit':
-                    exit();
-                    break;
-            }
-        })
+    inquirer.prompt([
+        {
+            type: 'list',
+            message: 'What would you like to do?',
+            name: 'queryOptions',
+            choices: [
+                'View All Departments',
+                'View All Roles',
+                'View All Employees',
+                'Add A Department',
+                'Add A Role',
+                'Add An Employee',
+                'Update An Employee Role',
+                'Exit'
+            ]
+        }
+    ]).then((res) => {
+        switch (res.queryOptions) {
+            case 'View All Departments':
+                viewAllDepartments();
+                break;
+            case 'View All Roles':
+                viewAllRoles();
+                break;
+            case 'View All Employees':
+                viewAllEmployees();
+                break;
+            case 'Add A Department':
+                addADepartment();
+                break;
+            case 'Add A Role':
+                addARole();
+                break;
+            case 'Add An Employee':
+                addAnEmployee();
+                break;
+            case 'Update An Employee Role':
+                updateAnEmployeeRole();
+                break;
+            case 'Exit':
+                exit();
+                break;
+        }
+    })
 }
 
 function viewAllDepartments() {
-    db.promise().query(
-        'SELECT * FROM department;'
-    ).then(([res]) => {
-        console.log('\n')
-        console.table(res)
-    }).then(() => chooseQuery())
+    db.query(
+        `SELECT department.id AS 'ID', department.name AS 'Department Name' FROM department`,
+        (err, res) => {
+            console.log('\n')
+            console.table(res)
+            chooseQuery()
+        }
+    )
 }
 
 function viewAllRoles() {
-    db.promise().query(
-        'SELECT * FROM role;'
-    ).then(([res]) => {
-        console.log('\n')
-        console.table(res)
-    }).then(() => chooseQuery())
+    db.query(
+        `SELECT role.id AS 'ID', role.title AS 'Job Title', role.salary AS 'Salary', department.name AS 'Department' FROM role LEFT JOIN department on role.department_id = department.id`,
+        (err, res) => {
+            console.log('\n')
+            console.table(res)
+            chooseQuery()
+        }
+    )
 }
 
 function viewAllEmployees() {
-    db.promise().query(
-        'SELECT * FROM employee;'
-    ).then(([res]) => {
-        console.log('\n')
-        console.table(res)
-    }).then(() => chooseQuery())
+    db.query(
+        `SELECT employee.id AS 'ID', employee.first_name AS 'First Name', employee.last_name AS 'Last Name', role.title AS 'Title', department.name AS 'Department', role.salary as Salary, CONCAT(manager.first_name, ' ', manager.last_name) AS 'Manager' from employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id`,
+        (err, res) => {
+            console.log('\n')
+            console.table(res)
+            chooseQuery()
+        }
+    )
 }
 
 function addADepartment() {
     inquirer.prompt([
         {
             type: 'input',
-            message: 'What is the name of the department you would like to add?',
+            message: 'What is the name of the department?',
             name: 'addDepartment',
         }
     ]).then((res) => {
         db.query(
-            'INSERT INTO department (name) VALUE (?)',
+            'INSERT INTO department (name) VALUES (?)',
             [res.addDepartment],
             (err, res) => {
-                console.log(`${res.addDepartment} has been added to the department database!`)
+                console.log('Success! Added the department to the database.')
                 chooseQuery()
             })
     })
 }
 
 function addARole() {
-
     db.query('SELECT * FROM department', (err, res) => {
-
         const addRoleArray = []
         for (let i = 0; i < res.length; i++) {
             const newRoleId = {
@@ -118,7 +121,6 @@ function addARole() {
             }
             addRoleArray.push(newRoleId)
         }
-
         inquirer.prompt([
             {
                 type: 'input',
@@ -137,12 +139,11 @@ function addARole() {
                 choices: addRoleArray
             }
         ]).then((res) => {
-
             db.query(
                 'INSERT INTO role (title, salary, department_id) VALUES (?,?,?)',
                 [res.addRoleTitle, res.addRoleSalary, res.addRoleDepartment],
                 (err, res) => {
-                    console.log(`${res.addRoleTitle} has been added to the role database!`)
+                    console.log('Success! Added the role to the database.')
                     chooseQuery()
                 })
         })
@@ -150,7 +151,6 @@ function addARole() {
 }
 
 function addAnEmployee() {
-
     db.query('SELECT * FROM role', (err, res) => {
         const addEmployeeArray = []
         for (let i = 0; i < res.length; i++) {
@@ -160,16 +160,16 @@ function addAnEmployee() {
             }
             addEmployeeArray.push(newEmployeeRole)
         }
-
         db.query('SELECT * FROM employee', (err, res) => {
             const addManagerArray = []
             for (let i = 0; i < res.length; i++) {
                 const newEmployeeManager = {
-                    name: res[i].first_name,
+                    name: `${res[i].first_name} ${res[i].last_name}`,
                     value: res[i].id
                 }
                 addManagerArray.push(newEmployeeManager)
             }
+            addManagerArray.push({ name: 'No Manager', value: null })
 
             inquirer.prompt([
                 {
@@ -199,7 +199,7 @@ function addAnEmployee() {
                     'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)',
                     [res.addEmployeeFirstName, res.addEmployeeLastName, res.addEmployeeRole, res.addEmployeeManager],
                     (err, res) => {
-                        console.log(`Employee has been added to the employee database!`)
+                        console.log('Success! Added the employee to the database.')
                         chooseQuery()
                     })
             })
@@ -208,59 +208,53 @@ function addAnEmployee() {
 }
 
 function updateAnEmployeeRole() {
-
     db.query('SELECT * FROM employee', (err, res) => {
-
         const employeeArray = []
         for (let i = 0; i < res.length; i++) {
             const employeeName = {
-                name: res[i].name,
+                name: `${res[i].first_name} ${res[i].last_name}`,
                 value: res[i].id
             }
             employeeArray.push(employeeName)
-
-            db.query('SELECT * FROM role', (err, res) => {
-
-                const roleArray = []
-                for (let i = 0; i < res.length; i++) {
-                    const roleName = {
-                        name: res[i].name,
-                        value: res[i].id
-                    }
-                    roleArray.push(roleName)
-                }
-
-                inquirer.prompt([
-                    {
-                        type: 'list',
-                        message: 'What is the name of the employee?',
-                        name: 'addRoleDepartment',
-                        choices: employeeArray[i].name
-                    },
-                    {
-                        type: 'list',
-                        message: 'What is their new role?',
-                        name: 'addRoleDepartment',
-                        choices: roleArray[i].name
-                    }
-                ]).then((res) => {
-
-                    db.query(
-                        'UPDATE employee SET rold_id = ? WHERE id = ?',
-                        [res.roleArray, res.employeeArray],
-                        (err, res) => {
-                            console.log(`${res.employeeArray} has been updated in the role database!`)
-                            chooseQuery()
-                        })
-                })
-            })
         }
+        db.query('SELECT * FROM role', (err, res) => {
+            const roleArray = []
+            for (let i = 0; i < res.length; i++) {
+                const roleName = {
+                    name: res[i].title,
+                    value: res[i].id
+                }
+                roleArray.push(roleName)
+            }
+            inquirer.prompt([
+                {
+                    type: 'list',
+                    message: 'What is the name of the employee?',
+                    name: 'chooseEmployee',
+                    choices: employeeArray
+                },
+                {
+                    type: 'list',
+                    message: 'What is their new role?',
+                    name: 'chooseRole',
+                    choices: roleArray
+                }
+            ]).then((res) => {
+                db.query(
+                    'UPDATE employee SET role_id = (?) WHERE id = (?)',
+                    [res.chooseRole, res.chooseEmployee],
+                    (err, res) => {
+                        console.log('Success! Employee role has been updated')
+                        chooseQuery()
+                    })
+            })
+        })
     })
 }
 
 function exit() {
     console.log('\n')
-    console.log('see ya!!')
+    console.log('Thank you for using the employee tracker app. Goodbye!')
     console.log('\n')
     process.exit()
 }
