@@ -3,6 +3,7 @@ const mysql = require('mysql2')
 const consoleTable = require('console.table')
 require('dotenv').config()
 
+// creating the database connection
 const db = mysql.createConnection(
     {
         host: process.env.DB_HOST,
@@ -12,7 +13,7 @@ const db = mysql.createConnection(
     },
     console.log(`Connected to the ${process.env.DB_NAME} database.`)
 )
-
+// listing all possible queries and asking which to choose
 function chooseQuery() {
     inquirer.prompt([
         {
@@ -34,7 +35,7 @@ function chooseQuery() {
         switch (res.queryOptions) {
             case 'View All Departments':
                 viewAllDepartments();
-                break;
+                
             case 'View All Roles':
                 viewAllRoles();
                 break;
@@ -59,7 +60,7 @@ function chooseQuery() {
         }
     })
 }
-
+// view all departments in the database
 function viewAllDepartments() {
     db.query(
         `SELECT department.id AS 'ID', department.name AS 'Department Name' FROM department`,
@@ -70,7 +71,7 @@ function viewAllDepartments() {
         }
     )
 }
-
+// view all roles in the database
 function viewAllRoles() {
     db.query(
         `SELECT role.id AS 'ID', role.title AS 'Job Title', role.salary AS 'Salary', department.name AS 'Department' FROM role LEFT JOIN department on role.department_id = department.id`,
@@ -81,7 +82,7 @@ function viewAllRoles() {
         }
     )
 }
-
+// view all employees in the database
 function viewAllEmployees() {
     db.query(
         `SELECT employee.id AS 'ID', employee.first_name AS 'First Name', employee.last_name AS 'Last Name', role.title AS 'Title', department.name AS 'Department', role.salary as Salary, CONCAT(manager.first_name, ' ', manager.last_name) AS 'Manager' from employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id`,
@@ -92,7 +93,7 @@ function viewAllEmployees() {
         }
     )
 }
-
+// add a department to the department table in the database
 function addADepartment() {
     inquirer.prompt([
         {
@@ -110,7 +111,7 @@ function addADepartment() {
             })
     })
 }
-
+// add a role to the role table in the database
 function addARole() {
     db.query('SELECT * FROM department', (err, res) => {
         const addRoleArray = []
@@ -149,7 +150,7 @@ function addARole() {
         })
     })
 }
-
+// add an employee to the employee table in the database
 function addAnEmployee() {
     db.query('SELECT * FROM role', (err, res) => {
         const addEmployeeArray = []
@@ -206,7 +207,7 @@ function addAnEmployee() {
         })
     })
 }
-
+// update and employee on the employee table in the database
 function updateAnEmployeeRole() {
     db.query('SELECT * FROM employee', (err, res) => {
         const employeeArray = []
@@ -251,12 +252,12 @@ function updateAnEmployeeRole() {
         })
     })
 }
-
+// option to exit the looping inquirer questions
 function exit() {
     console.log('\n')
     console.log('Thank you for using the employee tracker app. Goodbye!')
     console.log('\n')
     process.exit()
 }
-
+// calling the first function to initiate the app
 chooseQuery()
